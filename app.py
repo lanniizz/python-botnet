@@ -276,24 +276,5 @@ def getting_commands():
                                 except:
                                     pass
 
-                #Run command
-                case "/run":
-                    WholeCommand = WholeCommand.split()
-
-                    if ip in WholeCommand:
-                        try:
-                            os.startfile(WholeCommand[2])
-                            send_message("File runned!")
-                        except:
-                            send_message("Cannot open run file")
-
-                #Delete file       
-                case "/del":
-                    WholeCommand = WholeCommand.split()
-
-                    if ip in WholeCommand:
-                        file = WholeCommand[2]
-                        os.remove(file)
-                      
 getting_commands()
 
