@@ -18,6 +18,8 @@ Running commands on computers from telegramchat.
 
 /shell + ip + command (ls, cd, cd ..)
 
+/upload + ip + downloadlink
+
 
 
 
