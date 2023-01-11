@@ -20,6 +20,7 @@ Running commands on computers from telegramchat.
 
 /upload + ip + downloadlink
 
-
+## Rubber Ducky example
+link:....................
 
 
